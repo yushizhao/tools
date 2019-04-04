@@ -21,28 +21,28 @@ func (f shellFlag) add() string {
 	return "--" + f.name + " $" + f.name + " "
 }
 
-type paramList map[string]string
+type paramList []string
 
 func (l paramList) define() string {
 	tmp := ""
-	for k, v := range l {
-		tmp = tmp + fmt.Sprintf("%s=%s\n", k, v)
+	for i, v := range l {
+		tmp = tmp + fmt.Sprintf("%s=$%d\n", v, i+1)
 	}
 	return tmp + "\n"
 }
 
 func (l paramList) echo() string {
 	tmp := ""
-	for p, _ := range l {
-		tmp = tmp + fmt.Sprintf("echo %s = $%s\n", p, p)
+	for _, v := range l {
+		tmp = tmp + fmt.Sprintf("echo %s = $%s\n", v, v)
 	}
 	return tmp
 }
 
 func (l paramList) add() string {
 	tmp := ""
-	for p, _ := range l {
-		tmp = tmp + "--param $" + p + " "
+	for _, v := range l {
+		tmp = tmp + "--param $" + v + " "
 	}
 	return tmp
 }
@@ -84,9 +84,10 @@ func main() {
 	os.Mkdir(*contract, os.ModePerm)
 
 	// map[param][default value]
-	wholeList := make(paramList)
+	// wholeList := make(paramList)
+	// wholeList := []string{}
 	// [shell]
-	shellList := []string{}
+	// shellList := []string{}
 
 	// individual ctool invoke
 	for _, element := range abiFile {
@@ -96,7 +97,9 @@ func main() {
 
 			functionName := abi["name"].(string)
 
-			pList := make(paramList)
+			var pList paramList
+			// pList := []string{}
+
 			funcFlag := "--func " + functionName + " "
 
 			f, err := os.OpenFile("./"+*contract+"/"+functionName+".sh", os.O_RDWR|os.O_CREATE, 0755)
@@ -109,9 +112,8 @@ func main() {
 			for _, e := range inputList {
 				input := e.(map[string]interface{})
 				p := input["name"].(string) + "_" + input["type"].(string)
-				//To Do: set default value
-				wholeList[p] = ""
-				pList[p] = ""
+				// wholeList[p] = ""
+				pList = append(pList, p)
 			}
 
 			fmt.Fprintf(f, pList.define())
@@ -122,21 +124,21 @@ func main() {
 			shell = shell + pList.echo()
 			fmt.Fprintf(f, shell)
 
-			shellList = append(shellList, shell)
+			// shellList = append(shellList, shell)
 		}
 	}
 
 	// all-in-one ctool invoke
-	f, err := os.OpenFile("./"+*contract+"/"+"all-in-one"+".sh", os.O_RDWR|os.O_CREATE, 0755)
-	if err != nil {
-		fmt.Println(err)
-	}
-	defer f.Close()
+	// f, err := os.OpenFile("./"+*contract+"/"+"all-in-one"+".sh", os.O_RDWR|os.O_CREATE, 0755)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// }
+	// defer f.Close()
 
-	fmt.Fprintf(f, wholeList.define())
-	fmt.Fprintf(f, defineFlag)
+	// fmt.Fprintf(f, wholeList.define())
+	// fmt.Fprintf(f, defineFlag)
 
-	for _, e := range shellList {
-		fmt.Fprintf(f, e)
-	}
+	// for _, e := range shellList {
+	// 	fmt.Fprintf(f, e)
+	// }
 }
