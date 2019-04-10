@@ -31,9 +31,25 @@ Note, neither the name of the event ,'Notify', nor the type of data, 'uint64_t, 
 Note, to correctly parse an event, the name of the event is irrelevant, however, the data structure need to be known in advance.
 
 # decode arbitrary events
-As stated in the previous note, the data structure of events need to be known. It will be helpful if we have something similar to *.abi.json called *.event.json.
+As stated in the previous note, the data structure of events need to be known. Fortunately,
+it can be found in *.abi.json, like this:
 
-So far, search in the contract source code is the way to go.
+```json
+    {
+        "name": "Notify",
+        "inputs": [
+            {
+                "type": "uint64"
+            },
+            {
+                "type": "string"
+            }
+        ],
+        "type": "event"
+    }
+```
+
+Search in the contract source code is another way to go.
 
 For example, if there is a event template says:
 ```c++
@@ -50,7 +66,7 @@ type EXAMPLE struct {
 ``` 
 use rlp.Decode. See https://godoc.org/github.com/ethereum/go-ethereum/rlp#Decode for more details.
 
-Now there are some tricky parts in our c++ wasm contracts.
+Be aware that there are some tricky parts in our c++ wasm contracts.
 
 ## signed int
 As we all know, rlp don't do signed int. But it is possible to define an event template via BCOS_EVENT using signed int as variables. 
